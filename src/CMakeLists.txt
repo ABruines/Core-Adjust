@@ -1,0 +1,10 @@
+add_subdirectory(libcommon)
+add_subdirectory(core-adjust-qt)
+add_subdirectory(core-adjust)
+add_subdirectory(acpid)
+add_subdirectory(config)
+add_subdirectory(polkit)
+add_subdirectory(systemd)
+add_subdirectory(xdg)
+add_subdirectory(doc)
+

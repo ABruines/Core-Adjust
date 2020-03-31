@@ -1,0 +1,342 @@
+
+Core Adjust - Adjust various settings of Intel Processors.
+Copyright (C) 2020  Alexander Bruines, alexander.bruines@gmail.com
+
+Core Adjust is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Core Adjust is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with Undervolt.  If not, see <https://www.gnu.org/licenses/>.
+
+
+INDEX
+=====
+
+This document covers the following sections:
+
+  Introduction
+  Notes
+  Downloading Core Adjust
+  Installing the binary package
+  Building and installing
+  Required packages for using Core Adjust
+  Speed Control
+  Voltage Regulator
+  Thermal Control
+  Misc Control
+  Thermal Status
+  HyperThreading
+  Bootloader
+  Frequency Scaling
+
+
+Introduction
+============
+
+Core Adjust is a software tool that is used to adjust various settings of
+4th generation (Haswell) and later Intel(tm) processors on Debian/GNU and
+other Linux systems.
+
+The software consist of several parts:
+
+ - /usr/share/doc/core-adjust/README.gz
+   This README file.
+
+ - /etc/core-adjust/core-adjust.ini
+   A configuration file using the INI file-format.
+
+ - /usr/bin/core-adjust-qt
+   A Graphical User Interface in the form of a Qt application that
+   can be used to adjust processor settings from the comfort of your
+   desktop. (On KDE the application uses the theme for the root user,
+   to change it run 'sudo systemsettings5' and change the theme.)
+
+ - /usr/bin/core-adjust
+   A Bash script that applies the settings when the system boots,
+   resumes from sleep or (dis)connects to/from an AC power source.
+   This same script is called by the Qt application to apply new
+   settings and may also be run by the superuser to adjust settings
+   from a terminal window.
+
+ - /etc/acpi/events/core-adjust
+   This script is executed by acpid when when the AC adapter is plugged
+   in or out. It calls the core-adjust script with the '--acpi' parameter.
+
+ - /lib/systemd/system/core-adjust.service
+   This script is used by systemd to run the core-adjust script with the
+   '--boot' parameter when the system boots and with the '--resume'
+   parameter when the system resumes from sleep.
+
+ - /usr/share/polkit-1/actions/org.freedesktop.policykit.core-adjust-qt.policy
+   The polkit-1 daemon uses this file to ask for superuser permissions
+   when the Qt application is launched by a regular user from the desktop.
+
+ - /usr/share/core-adjust/core-adjust.*
+   A .desktop file and icon for the Qt application that are installed
+   onto the system using xdg-utils when the Debian package is installed.
+
+The Qt application presents several 'tabs' that can be used to
+adjust the various types of settings. When a setting is modified it can
+be applied or discarded. This must be done before switching to another tab
+or exiting the application.
+
+There is a chance that the system will crash when settings are applied.
+To (help to) prevent the system from crashing when the core-adjust script
+is called during system startup newly applied settings are only writen to
+the configuration file when the application exists in a normal fashion.
+
+New adjustments can be saved to the configuration file or discarded when
+the application exits by (un)checking the relevant checkbox.
+
+If the CPU locks up upon boot because of the used setting then reboot
+into resque mode and delete the file '/etc/core-adjust/core-adjust.ini'.
+It will be re-generated the next time the GUI application is run and
+saves new settings.
+
+There is also a checkbox that is used to enable or disable the settings
+being applied upon boot/resume/acpi events. This option always takes
+effect immediately when (un)checked.
+
+The application can be started from the 'start' menu, an entry named
+'Core Adjust' is added to the 'Settings' category by the installer.
+
+
+Notes:
+======
+
+Since I only have my own hardware to test with I have no idea if this software
+will work on yours. All I can say is that most of this application works for me
+but I was unable to test every possible combination of settings.
+
+Not every available setting this application provides may be usefull, I just
+added everything that I could think of. Its up to you to find out what works
+for your system(s).
+
+Everything was written and tested on an Alienware 17 laptop with a i7-4910MQ
+running KDE on Debian 'buster'. Core Adjust should work with every desktop
+environment available in Debian (this does not include Wayland).
+
+The layout of the Qt application is made for 1080p. It works fine on
+lower resolutions but there may be some scroll bars. 
+
+In a future version I may re-write the core-adjust script as a C++ application.
+The script is much larger and more complex then I intended, its going to be a
+difficult job to maintain it...
+
+
+Downloading Core Adjust
+=======================
+
+Core Adjust can be downloaded from SourceForge:
+
+ https://core-adjust.sourceforge.io
+
+
+Development releases can be downloaded from GitHub:
+
+ https://github.com/ABruines/Core-Adjust
+
+
+Installing the binary package
+=============================
+
+If you have downloaded the .deb package and want to install it then run
+the following command from the directory containing the .deb file:
+
+ sudo dpkg -i core-adjust_1.0_amd64.deb || sudo apt -f install
+
+This command will also take care of installing any missing dependencies.
+Afterwards Core Adjust can be searched/started from the startmenu of your
+desktop environment.
+
+
+Building and installing
+=======================
+
+If you are installing Core Adjust on Debian or another apt based distro then
+please use dpkg-buildpackage to build the .deb package and install that using
+dpkg.
+
+From the directory containing this README file, run:
+
+ - Prepare:  sudo apt install debhelper cmake qtbase5-dev
+ - Build:    mkdir build && cd build && cmake .. && make deb
+ - Install:  sudo dpkg -i core-adjust_1.0_amd64.deb || sudo apt -f install
+
+The install-command should take care of any missing (runtime) dependencies
+by itself.
+
+
+On other systems (that use systemd) you can configure and build the application
+like any other CMake project, ie. from the directory that contains this README
+file run:
+
+ - mkdir build && cd build
+ - cmake -DCMAKE_INSTALL_PREFIX=/usr -DENABLE_SERVICE=ON -DENABLE_XDG=ON ..
+ - make
+ - sudo make install
+
+When installing Core Adjust in this manner you will need to satisfy the
+dependencies required to build and run the application yourself.
+
+
+Required packages for using Core Adjust
+=======================================
+
+  acpi-support bash bc bsdutils coreutils cpufrequtils cpuid irqbalance
+  kmod msr-tools powermgmt-base systemd policykit-1 xdg-utils
+  libc6 libgcc1 libqt5core5a libqt5gui5 libqt5widgets5 libstdc++6
+
+
+-------------------------------------------------------------------------------
+
+
+Speed Control
+=============
+
+Adjust Enhanced Intel Speedstep Technology (EIST) and
+Turbo Boost Technology (IDA) settings.
+
+
+Voltage Regulator
+=================
+
+Undervolting a CPU (without overclocking) is harmless as manufacturers like
+Intel undervolt almost all CPUs on a routine basis. It is the part of EIST
+(Enhanced Intel SpeedStep Technology) that reduces heat production by using
+a lower voltage at lower frequencies.
+
+The only risk that you run in undervolting is an unstable system because you
+are in effect overclocking the CPU for that particular voltage. If you
+undervolt too far, the system will lock up and you will need to restart the
+computer. 
+
+Sometimes it is possible to undervolt (and overvolt) your CPU from the system
+BIOS, but I would not reccommend that. The reason against this is that
+modifying the Vcore in the BIOS usually disables EIST. Another reason is that
+undervolting this way may prevent you from entering the BIOS if the voltage
+is set too low. If there is no reset jumper to clear the CMOS (like on
+Alienware 17 laptops) in that situation...
+
+The advantage of using a software tool is that when the CPU locks up,
+the computer will still reboot with the normal Vcore.
+
+Core Adjust operates by modifying an offset that is added to Vcore by
+the FIVR (Fully Integrated Voltage Regulator) found in modern Intel CPUs.
+This is accomplished by modifying the values in 'MSR 150h'.
+
+This 'MSR 150h' feature is undocumented but some very smart people have
+discovered how to use this Machine Specific Register. This software uses
+those discovered methods to do its work.
+
+Since this application uses undocumented features of your Intel processor,
+I cannot guarantee that this software a) works with your CPU, and b) does not
+damage or destroy your processor. Use of this software is completely at your
+own risk!
+
+Having said that, this software should work with 4th generation (Haswell) and
+later 'Core' processors. Others processors (like Xeon) have not been tested.
+In fact I was only able to test this with my own Core i7-4910MQ.
+
+Note that it is possible to overvolt your CPU using this software.
+Please be aware that overvolting your CPU may damage and even completely
+destroy it. You have been warned!
+
+To undervolt your Intel processor use the sliders to lower the voltage offset.
+Voltage planes that have not been selected (ie. are greyed out) will not
+be modified.
+
+Clicking the 'apply' button after setting the voltages will immediately apply
+the new voltage(s). If the computer does not freeze at that point, you will
+want to test the stability of your CPU by running a stresstest application
+(and monitoring the CPU temperature).
+
+If the computer appears to run stable with the new voltage(s) you can save
+the voltage offsets to the configuration file...
+
+
+Thermal Control
+===============
+
+The CPU target temperature is the temperature at which the processor will
+start to throttle in order to stay at or below that temperature.
+
+Lowering this value may reduce the temperature (and power usage) of your CPU
+at the cost of (more) throttling.
+
+It is also possible to set a different target temperature while the computer
+is running on its battery as apposed to AC power. This feature is handled in
+software by responding to the generated ACPI event when AC power is removed or
+restored and by detection during boot or resume.
+
+Please be aware that some laptop manufacturers may set the target temperature
+to a lower value on purpose in order to protect the system (ie. compensate for
+inadequate cooling/power). Setting a higher value may damage such systems.
+
+(As it turns out the processor in my laptop is locked by the BIOS to always
+use TM1 so I am unable to fully test these settings.)
+
+
+Misc Control
+============
+
+The settings on this tab are used to configure the bits of the IA32_MISC_ENABLE
+msr not covered by any of the other tabs.
+
+
+Thermal Status
+==============
+
+This tab displays the thermal status of the processor package(s) and the cores
+it/they contain.
+
+
+HyperThreading
+==============
+
+Enable or disable Symmetrical Multithreading (SMT) and HyperThreading (HTT).
+
+Disabling SMT globally works by writing sysfs location:
+  /sys/devices/system/cpu/smt/control
+
+Disabling HTT for individual processors works by writing sysfs location:
+  /sys/devices/system/cpu/cpu?/online
+
+
+Bootloader
+==========
+
+Adjust some processor related kernel parameters.
+This tab requires that the system uses GRUB.
+
+Disabling the Intel P-state driver allows the kernel to use the ACPI cpufreq
+driver instead. Placing the Intel P-state driver in 'passive' mode will use
+the intel_cpufreq driver.
+
+All of these drivers have their own (dis)advantages. The ACPI driver has a
+'userspace' governor but only allows turbo boost to be fully enabled or
+disabled, the Intel p-state driver does not have the userspace governor but
+allows you to set a maximum turbo boost frequency.
+
+Adjusting the values on this page requires a reboot to apply them.
+
+The settings on this tab are not stored in the Core Adjust configuration
+file but directly written to /etc/default/grub. The 'apply' button will
+run the 'update-grub' command.
+
+(Also see the 'Frequency Scaling' tab.)
+
+
+Frequency Scaling
+=================
+
+This tab is basicly a frontend for the cpufreq-utils package.
+It controls the frequency scaling governor of the current cpufreq driver.
+(Also see the 'Bootloader' tab)

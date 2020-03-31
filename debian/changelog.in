@@ -1,0 +1,5 @@
+@DebPkgName@ (@CPACK_DEBIAN_PACKAGE_VERSION@-@CPACK_DEBIAN_PACKAGE_RELEASE@) unstable; urgency=low
+
+  * Initial release (Closes: #0100)
+
+ -- Alexander Bruines <@CPACK_DEBIAN_PACKAGE_MAINTAINER@>  Mon, 30 Mar 2020 23:58:00 +0200

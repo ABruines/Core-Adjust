@@ -1,0 +1,4 @@
+# Apply core-adjust settings when the AC adapter is plugged in or out.
+event=ac_adapter.*
+action=@CMAKE_INSTALL_PREFIX@/bin/core-adjust --acpi
+

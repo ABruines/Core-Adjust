@@ -1,0 +1,12 @@
+[Desktop Entry]
+Name=Core Adjust
+Comment=Adjust various settings of Intel Processors
+Comment[nl]=Instellingen van Intel processoren aanpassen
+Type=Application
+Categories=Settings;HardwareSettings;
+Encoding=UTF-8
+Exec=pkexec @CMAKE_INSTALL_PREFIX@/bin/core-adjust-qt
+Icon=core-adjust.png
+Terminal=false
+StartupNotify=true
+Version=@PACKAGE_VERSION@
